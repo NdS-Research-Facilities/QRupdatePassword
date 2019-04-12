@@ -78,25 +78,35 @@ def updateData(df):
 def main(action='help', dataFile=None):
 		#print action, dataFile
 		if action is "help":
-			print "Usage: python updatePasswords [OPTION] [FILE]"
+			print "Usage: python updatePassword [OPTION] [FILE]"
 			print "exports or updates (non-bulk) LogSources for \'Microsoft Windows Security Event Log over MSRPC\'"
+			print ""
+			print "This small utility must be run on a QRadar Console system."
+			print "Versions tested: 7.3.2P0 "
 			print ""
 			print "Both [OPTION] and [FILE] are mandatory arguments"
 			print "[OPTION] can either be:"
+			print ""
 			print "export"
 			print ""
-			print "\"export\" option will create a .csv file provided by the filename [FILE] as a second argument."
-			print "the created file will include the LogSource ID, name, domain, userid and the unencrypted password"
+			print "	\"export\" option will create a .csv file provided by the filename [FILE] as a second argument."
+			print "	the created file will include the LogSource ID, name, domain, userid and the unencrypted password"
 			print ""
 			print ""
 			print "update"
 			print ""
-			print "\"update\" option will read the file provided by the fuilename [FILE] and process the contents"
-			print "the input file should be a csv file with the following fields as a header line:"
-			print "lsid, name, domain, userid, unencryptedpassword"
-			print "where lsid is the LogSource id number "
-
-
+			print "	\"update\" option will read the file provided by the filename [FILE] and process the contents"
+			print "	the input file should be a csv file with the following fields as a header line:"
+			print "	lsid, name, domain, userid, unencryptedpassword"
+			print "	(where lsid is the LogSource id number)"
+			print ""
+			print "Examples:"
+			print "	python updatePasswords export outfile.csv"
+			print "	python updatePasswords update outfile.csv"
+			print ""
+			print "Build April 2019 by Nico de Smidt, nico[at]ndsrf.eu"
+			print "To report bugs, please create a report on https://github.com/NdS-Research-Facilities/QRupdatePassword"
+			print ""
 
 
 
