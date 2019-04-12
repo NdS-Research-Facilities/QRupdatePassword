@@ -14,7 +14,7 @@ def exportData(df):
 	# '162,msrpctest,P50,bkcNvhioiEXfK0z0kc3L1g==,via2326'
 	command = 'psql -U qradar -At -F , -c "select sd.id,sd.devicename,string_agg(cp.value::text,\',\' ORDER BY cp.name) from sensordevice sd, sensorprotocolconfigparameters cp where sd.devicetypeid=12 and sd.deviceenabled=true and sd.bulk_added=false and sd.spconfig=cp.sensorprotocolconfigid and cp.name in (\'UserName\',\'DomainName\',\'Password\') group by sd.id order by sd.id;"'
 	results = executeCommand(command, log=False, noDebug=True)
-	print results
+	#print results
 	records = len(results)-1
 	print "Number of LogSources found for export: ", records
 	with open(str(df),'wb') as csv_file:  # Python 2 version
@@ -37,42 +37,42 @@ def exportData(df):
 
 
 def updateData(df):
-		#command = 'psql -U qradar -At -F , -c "select sd.id,sd.devicename,string_agg(cp.value::text,\',\') from sensordevice sd, sensorprotocolconfigparameters cp where sd.devicetypeid=12 and sd.deviceenabled=true and sd.bulk_added=false and sd.spconfig=cp.sensorprotocolconfigid and cp.name in (\'UserName\',\'DomainName\',\'Password\') group by sd.id order by sd.id"'
-		#results = executeCommand(command, log=False, noDebug=True)
-		#sid,name,domain,userid,password
-		records = sum(1 for line in open(str(df)))-1
-		print "Number of lines found for update: ", records
-		with open(str(df),'rb') as csv_file:    # Python 2 version
-				csv_reader = csv.reader(csv_file, dialect='excel', delimiter=',')
-				next(csv_reader)
+	#command = 'psql -U qradar -At -F , -c "select sd.id,sd.devicename,string_agg(cp.value::text,\',\') from sensordevice sd, sensorprotocolconfigparameters cp where sd.devicetypeid=12 and sd.deviceenabled=true and sd.bulk_added=false and sd.spconfig=cp.sensorprotocolconfigid and cp.name in (\'UserName\',\'DomainName\',\'Password\') group by sd.id order by sd.id"'
+	#results = executeCommand(command, log=False, noDebug=True)
+	#sid,name,domain,userid,password
+	records = sum(1 for line in open(str(df)))-1
+	print "Number of lines found for update: ", records
+	with open(str(df),'rb') as csv_file:    # Python 2 version
+		csv_reader = csv.reader(csv_file, dialect='excel', delimiter=',')
+		next(csv_reader)
 
-				lastts = datetime.utcnow()
-				donerecords = 0
-				for row in csv_reader:
-					#  update name
-					command = ('psql -U qradar -c "update sensordevice set devicename = \'%s\' where id = %s"' % (str(row[1]),str(row[0])))
-					results = executeCommand(command, log=False, noDebug=True)
-					# get spcid
-					command = ('psql -U qradar -At -F , -c "select sd.spconfig from sensordevice sd where id = %s"' % (str(row[0])))
-					results = executeCommand(command, log=False, noDebug=True)
-					spconfigid = int(results[1])
+		lastts = datetime.utcnow()
+		donerecords = 0
+		for row in csv_reader:
+			#  update name
+			command = ('psql -U qradar -c "update sensordevice set devicename = \'%s\' where id = %s"' % (str(row[1]),str(row[0])))
+			results = executeCommand(command, log=False, noDebug=True)
+			# get spcid
+			command = ('psql -U qradar -At -F , -c "select sd.spconfig from sensordevice sd where id = %s"' % (str(row[0])))
+			results = executeCommand(command, log=False, noDebug=True)
+			spconfigid = int(results[1])
 
-					command = ('psql -U qradar -c "update sensorprotocolconfigparameters set value = \'%s\' where sensorprotocolconfigid = %s and name=\'DomainName\'; commit;"' % (str(row[2]), spconfigid ))
-					results = executeCommand(command, log=False, noDebug=True)
-					command = ('psql -U qradar -c "update sensorprotocolconfigparameters set value = \'%s\' where sensorprotocolconfigid = %s and name=\'UserName\'; commit;"' % (str(row[3]), spconfigid))
-					results = executeCommand(command, log=False, noDebug=True)
+			command = ('psql -U qradar -c "update sensorprotocolconfigparameters set value = \'%s\' where sensorprotocolconfigid = %s and name=\'DomainName\'; commit;"' % (str(row[2]), spconfigid ))
+			results = executeCommand(command, log=False, noDebug=True)
+			command = ('psql -U qradar -c "update sensorprotocolconfigparameters set value = \'%s\' where sensorprotocolconfigid = %s and name=\'UserName\'; commit;"' % (str(row[3]), spconfigid))
+			results = executeCommand(command, log=False, noDebug=True)
 
-					np = password_action('encrypt',str(row[4]))[1]
-					command = ('psql -U qradar -c "update sensorprotocolconfigparameters set value = \'%s\' where sensorprotocolconfigid = %s and name=\'Password\'; commit;"' % (np, spconfigid))
-					results = executeCommand(command, log=False, noDebug=True)
-					command = ('psql -U qradar -c "update sensorprotocolconfigparameters set value = \'%s\' where sensorprotocolconfigid = %s and name=\'ConfirmPassword\'; commit;"' % (np, spconfigid))
-					results = executeCommand(command, log=False, noDebug=True)
+			np = password_action('encrypt',str(row[4]))[1]
+			command = ('psql -U qradar -c "update sensorprotocolconfigparameters set value = \'%s\' where sensorprotocolconfigid = %s and name=\'Password\'; commit;"' % (np, spconfigid))
+			results = executeCommand(command, log=False, noDebug=True)
+			command = ('psql -U qradar -c "update sensorprotocolconfigparameters set value = \'%s\' where sensorprotocolconfigid = %s and name=\'ConfirmPassword\'; commit;"' % (np, spconfigid))
+			results = executeCommand(command, log=False, noDebug=True)
 
-					nowts = datetime.utcnow()
-					donerecords=donerecords+1
-					x=relativedelta(nowts,lastts) * (records-donerecords)
-					print str(donerecords)+" out of "+str(records)+" records done, time remaining (d:h:m:s) "+ str(int(x.days)) + ":"+str(int(x.hours))+":"+str(int(x.minutes))+":"+str(int(x.seconds))
-					lastts=nowts
+			nowts = datetime.utcnow()
+			donerecords=donerecords+1
+			x=relativedelta(nowts,lastts) * (records-donerecords)
+			print str(donerecords)+" out of "+str(records)+" records done, time remaining (d:h:m:s) "+ str(int(x.days)) + ":"+str(int(x.hours))+":"+str(int(x.minutes))+":"+str(int(x.seconds))
+			lastts=nowts
 
 
 def main(action='help', dataFile=None):
@@ -109,17 +109,15 @@ def main(action='help', dataFile=None):
 			print ""
 
 
-
-
-
 		elif action == "export":
-				if isConsole():
-						exportData(dataFile)
+			if isConsole():
+				exportData(dataFile)
 		elif action == "update":
-				if isConsole():
-						updateData(dataFile)
+			if isConsole():
+				updateData(dataFile)
 
 if len(sys.argv) == 3:
-		main(sys.argv[1],sys.argv[2])
+	print ""
+	main(sys.argv[1],sys.argv[2])
 else:
-		main()
+	main()
